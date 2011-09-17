@@ -1,0 +1,38 @@
+
+Following along with Peter Norvig's List interpreter from
+http://norvig.com/lispy.html
+
+
+Dependencies
+------------
+
+  * Written on MacOS but should be portable.
+  * Python 3.2
+
+
+Usage
+-----
+
+::
+
+    lispy [<options>] <program_file.ls>
+
+<Options> may include any of:
+
+    --version
+        Display version number and quit.
+    --help
+        Display usage information and quit.
+
+
+Known Issues
+------------
+
+Nothing is implemented yet.
+
+
+Thanks
+------
+
+Peter Norvig for creating Lispy and then blogging about it.
+
