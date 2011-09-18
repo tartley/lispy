@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 
+import operator as op
 from unittest import main, TestCase
 
 import fixpath
 from lis import (
-    atom, Env, eval_expr, expr_from_tokens, parse, Symbol, to_string, tokenize,
+    atom, Env, eval_expr, expr_from_tokens, get_builtins, parse, Symbol,
+    to_string, tokenize,
 )
 
 
@@ -41,6 +43,46 @@ class TestEnv(TestCase):
         self.assertIsNone(inner.find('ghi'))
 
 
+class TestBuiltins(TestCase):
+
+    def test_add(self):
+        add = get_builtins()['+']
+        with self.assertRaises(TypeError):
+            add()
+        self.assertEqual(add(3), 3)
+        self.assertEqual(add(3, 2), 5)
+        self.assertEqual(add(3, 2, 1), 6)
+
+    def test_sub(self):
+        sub = get_builtins()['-']
+        with self.assertRaises(TypeError):
+            sub()
+        self.assertEqual(sub(123), -123)
+        self.assertEqual(sub(10, 2), 8)
+        with self.assertRaises(TypeError):
+            sub(1, 2, 3)
+
+    def test_mul(self):
+        mul = get_builtins()['*']
+        with self.assertRaises(TypeError):
+            mul()
+        with self.assertRaises(TypeError):
+            mul(123)
+        self.assertEqual(mul(3, 2), 6)
+        self.assertEqual(mul(4, 3, 2), 24)
+
+    def test_div(self):
+        div = get_builtins()['/']
+        with self.assertRaises(TypeError):
+            div()
+        with self.assertRaises(TypeError):
+            div(123)
+        self.assertEqual(div(10, 2), 5)
+        self.assertAlmostEqual(div(10, 3), 3.3333333)
+        with self.assertRaises(TypeError):
+            div(1, 2, 3)
+
+
 class TestEval(TestCase):
 
     def test_variable_reference(self):
@@ -62,7 +104,15 @@ class TestEval(TestCase):
         self.assertIsNone(eval_expr(['set!', 'var', 789], env))
         self.assertEqual(env['var'], 789)
 
-   
+    def test_procedure_invocation(self):
+        env = Env({
+            'x': op.add,
+            'a': 111,
+            'b': 222,
+        })
+        self.assertEqual(eval_expr(['x', 'a', 'b'], env), 333)
+
+
 class TestParse(TestCase):
 
     def test_tokenise(self):
@@ -85,7 +135,7 @@ class TestParse(TestCase):
     def test_expr_from_tokens(self):
         self.assertEqual(expr_from_tokens(['(', '1', '2', '3', ')']), [1, 2, 3])
 
-    def test_read(self):
+    def test_parse(self):
         self.assertEqual(parse('( 1 2 3 )'), [1, 2, 3])
 
 
@@ -95,6 +145,15 @@ class TestRepl(TestCase):
         self.assertEqual(to_string(123), '123')
         self.assertEqual(to_string([1, 2, 3]), '(1 2 3)')
         self.assertEqual(to_string([1, [2, 3], 4]), '(1 (2 3) 4)')
+
+
+class TestEvalParse(TestCase):
+
+    def test_parse_and_evaluate(self):
+        self.assertEqual(eval_expr(parse('(+ 1 2 (+ 30 40 50) 3)')), 126)
+        self.assertEqual(eval_expr(parse('(* 2 3 (* 5 6 7) 4)')), 5040)
+        self.assertEqual(eval_expr(parse('(- 100 (- (- 50 20) 5))')), 75)
+        self.assertEqual(eval_expr(parse('(/ 360 (/ (/ 60 2) 10))')), 120)
 
 
 if __name__ == '__main__':

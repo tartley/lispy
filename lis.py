@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 
+from functools import reduce
+import operator as op
+
 
 # Symbol
 
@@ -26,15 +29,32 @@ class Env(dict):
             return self.outer.find(var)
 
 
-def get_initial_globals():
-    import math
-    import operator as op
-    return {
-        '+': op.add,
-    }
-    
+# built-ins
 
-global_env = Env(get_initial_globals())
+def sub(*args):
+    if len(args) == 1:
+        return -args[0]
+    if len(args) == 2:
+        return args[0] - args[1]
+    raise TypeError("'-' needs 1 or 2 args, not %d %s" % (len(args), args,))
+
+
+def mul(*args):
+    if len(args) > 1:
+        return reduce(op.mul, args)
+    raise TypeError("'*' needs 2 or more args, not %d %s" % (len(args), args,))
+
+
+def get_builtins():
+    return {
+        '+': lambda *args: reduce(op.add, args),
+        '-': sub,
+        '*': mul,
+        '/': op.truediv,
+    }
+
+
+global_env = Env(get_builtins())
 
 
 # parse
@@ -64,7 +84,7 @@ def expr_from_tokens(tokens):
         expr = []
         while tokens[0] != ')':
             expr.append( expr_from_tokens(tokens) )
-        tokens.pop() # pop final ')'
+        tokens.pop(0) # pop final ')'
         return expr
     elif token == ')':
         raise SyntaxError('unexpected ")"')
@@ -99,7 +119,10 @@ def eval_expr(expr, env=global_env):
         (_, var, value) = expr
         env.find(var)[var] = eval_expr(value, env)
     else:
-        raise SyntaxError('eval_expr ' + str(expr))
+        values = [eval_expr(subexpr, env) for subexpr in expr]
+        proc = values.pop(0)
+        return proc(*values)
+
 
 # repl
 
