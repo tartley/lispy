@@ -213,6 +213,9 @@ class TestEvalExpr(TestCase):
         self.assertEqual(inner, {'var': 789})
         self.assertEqual(outer, {'var': 0})
 
+    def test_eval_expr_lambda(self):
+        pass
+
     def test_eval_expr_proc(self):
         env = Env({'x': op.add, 'a': 111, 'b': 222})
         self.assertEqual(eval_expr(['x', 'a', 'b'], env), 333)
@@ -237,7 +240,7 @@ class TestEvalString(TestCase):
         self.assertEqual(eval_string('(+ a 3 (+ b 40 50) c)', env), 129)
 
 
-class TestRepl(TestCase):
+class TestToString(TestCase):
 
     def test_to_string(self):
         self.assertEqual(to_string(123), '123')

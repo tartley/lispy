@@ -117,26 +117,32 @@ def eval_expr(expr, env=global_env):
         else:
             raise NameError(expr)
 
-    elif not isinstance(expr, list): # constant literal
+    elif not isinstance(expr, list):
+        # constant literal
         return expr
 
     elif expr[0] == 'quote':
+        # (quote <value>)
         _, value = expr
         return value
 
     elif expr[0] == 'if':
+        # (if <predicate> <consequent> <alternate>)
         _, pred, conseq, alt = expr
         return eval_expr((conseq if eval_expr(pred, env) else alt), env)
 
     elif expr[0] == 'set!':
-        (_, var, value) = expr
-        env.find(var)[var] = eval_expr(value, env)
+        # (set! <name> <value>)
+        (_, name, value) = expr
+        env.find(name)[name] = eval_expr(value, env)
 
     elif expr[0] == 'define':
+        # (define <name> <value>)
         (_, name, value) = expr
         env[name] = eval_expr(value, env)
 
-    else: # procedure invocation
+    else:
+        # procedure invocation, (<proc> arg1 arg2...)
         values = [eval_expr(subexpr, env) for subexpr in expr]
         proc = values.pop(0)
         return proc(*values)
