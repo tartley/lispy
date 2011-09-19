@@ -81,13 +81,15 @@ def atom(token):
 def expr_from_tokens(tokens):
     "Pop a complete expression from the start of 'tokens', and return it."
     if len(tokens) == 0:
-        raise SyntaxError('Unexpected EOF while reading')
+        raise SyntaxError('Unexpected EOF at start of expression')
     token = tokens.pop(0)
     if token == '(':
         expr = []
-        while tokens[0] != ')':
+        while tokens and tokens[0] != ')':
             expr.append( expr_from_tokens(tokens) )
-        tokens.pop(0) # discard the closing ')'
+        if len(tokens) == 0:
+            raise SyntaxError('Unexpected EOF mid expression')
+        tokens.pop(0) # discard final ')'
         return expr
     elif token == ')':
         raise SyntaxError('Unexpected ")"')

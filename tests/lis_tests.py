@@ -190,6 +190,10 @@ class TestEvalString(TestCase):
             eval_string(')')
         self.assertEqual(str(cm.exception), 'Unexpected ")"')
 
+        with self.assertRaises(SyntaxError) as cm:
+            eval_string('(')
+        self.assertEqual(str(cm.exception), 'Unexpected EOF mid expression')
+
     def test_parse_string_multiple_expressions(self):
         self.assertEqual(eval_string('100 200'), 200)
 
