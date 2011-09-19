@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from argparse import ArgumentParser, FileType
+import sys
 from functools import reduce
 import operator as op
 
@@ -36,13 +38,13 @@ def sub(*args):
         return -args[0]
     if len(args) == 2:
         return args[0] - args[1]
-    raise TypeError("'-' needs 1 or 2 args, not %d %s" % (len(args), args,))
+    raise TypeError(''-' needs 1 or 2 args, not %d %s' % (len(args), args,))
 
 
 def mul(*args):
     if len(args) > 1:
         return reduce(op.mul, args)
-    raise TypeError("'*' needs 2 or more args, not %d %s" % (len(args), args,))
+    raise TypeError(''*' needs 2 or more args, not %d %s' % (len(args), args,))
 
 
 def get_builtins():
@@ -51,11 +53,11 @@ def get_builtins():
         '-': sub,
         '*': mul,
         '/': op.truediv,
+        'display': print,
     }
 
 
 global_env = Env(get_builtins())
-
 
 
 # parse
@@ -141,6 +143,38 @@ def repl(prompt='lis> '):
             print(to_string(val))
 
 
+# command-line processing
+
+def get_parser():
+    parser = ArgumentParser(
+        description='Load data into the Rangespan catalog')
+    parser.add_argument('-v', '--version',
+        action='store_true',
+        help='Show version number and exit.'
+    )
+    parser.add_argument(
+        'sourcefile',
+        nargs='?',
+        type=FileType('rU'),
+        default=sys.stdin,
+        help='Lispy source code filename.')
+    return parser
+
+
+VERSION = '0.1'
+
+def main(argv):
+    parser = get_parser()
+    args = parser.parse_args()
+    if args.version:
+        print('v%s' % (VERSION,))
+        sys.exit(0)
+
+    if args.sourcefile:
+        source = args.sourcefile.read()
+        eval_expr(parse(source))
+
+
 if __name__ == '__main__':
-    repl()
+    main(sys.argv)
 

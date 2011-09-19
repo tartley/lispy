@@ -48,6 +48,7 @@ class TestBuiltins(TestCase):
         self.assertEqual(add(3, 2), 5)
         self.assertEqual(add(3, 2, 1), 6)
 
+
     def test_sub(self):
         sub = get_builtins()['-']
         with self.assertRaises(TypeError):
@@ -57,6 +58,7 @@ class TestBuiltins(TestCase):
         with self.assertRaises(TypeError):
             sub(1, 2, 3)
 
+
     def test_mul(self):
         mul = get_builtins()['*']
         with self.assertRaises(TypeError):
@@ -65,6 +67,7 @@ class TestBuiltins(TestCase):
             mul(123)
         self.assertEqual(mul(3, 2), 6)
         self.assertEqual(mul(4, 3, 2), 24)
+
 
     def test_div(self):
         div = get_builtins()['/']
@@ -76,6 +79,29 @@ class TestBuiltins(TestCase):
         self.assertAlmostEqual(div(10, 3), 3.3333333)
         with self.assertRaises(TypeError):
             div(1, 2, 3)
+
+
+    def test_display(self):
+
+        calls = []
+        def mock_print(*args):
+            calls.append(args)
+
+        import lis
+        lis.print = mock_print
+        try:
+            display = get_builtins()['display']
+            argslist = [
+                (),
+                (1,),
+                ('a',),
+                (1, 'a'),
+            ]
+            for args in argslist:
+                self.assertIsNone(display(*args))
+                self.assertEqual(calls[-1], args)
+        finally:
+            lis.print = print
 
 
 class TestEval(TestCase):
