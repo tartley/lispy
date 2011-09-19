@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
 
+from os import path
 import operator as op
+import sys
 from unittest import main, TestCase
 
-import fixpath
+
+# Append parent dir to sys.path so that tests can import from it
+sys.path.insert(0, path.abspath(path.join(path.dirname(__file__), '..')))
+
 from lis import (
     atom, Env, eval_expr, expr_from_tokens, get_builtins, global_env,
     parse, Symbol, to_string, tokenize,
