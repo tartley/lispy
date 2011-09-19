@@ -29,6 +29,7 @@ class Env(dict):
             return self
         elif self.outer:
             return self.outer.find(var)
+        raise NameError('Unbound variable "%s"' % (var,))
 
 
 # built-ins

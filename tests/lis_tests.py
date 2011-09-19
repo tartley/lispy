@@ -39,7 +39,8 @@ class TestEnv(TestCase):
         inner = Env({'abc':0}, outer)
         self.assertEqual(inner.find('abc'), inner)
         self.assertEqual(inner.find('def'), outer)
-        self.assertIsNone(inner.find('ghi'))
+        with self.assertRaises(NameError):
+            inner.find('ghi')
 
 
 class TestBuiltins(TestCase):
@@ -228,6 +229,13 @@ class TestEvalString(TestCase):
         self.assertEqual(eval_string('(if true conseq undefined)', env), 123)
         self.assertEqual(eval_string('(if false undefined alt)', env), 456)
 
+    def test_eval_string_set(self):
+        env = Env({'x':123})
+        self.assertIsNone(eval_string('(set! x 456)', env))
+        self.assertEqual(env['x'], 456)
+
+        with self.assertRaises(NameError):
+            eval_string('(set! y 0)')
 
 
 if __name__ == '__main__':
