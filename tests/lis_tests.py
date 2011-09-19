@@ -26,18 +26,13 @@ class TestEnv(TestCase):
         self.assertEqual(env, {})
         self.assertIsNone(env.outer)
     
-    def test_constructor_from_tuples(self):
-        outer = Env()
-        inner = Env(('a', 'b', 'c'), (1, 2, 3), outer)
-        self.assertEqual(inner, {'a':1, 'b':2, 'c':3})
-    
     def test_constructor_from_dict(self):
         values = {'d':4, 'e':5, 'f':6}
         self.assertEqual(Env(values), values)
 
     def test_find(self):
-        outer = Env(('def',), (0,))
-        inner = Env(('abc',), (0,), outer)
+        outer = Env({'def':0})
+        inner = Env({'abc':0}, outer)
         self.assertEqual(inner.find('abc'), inner)
         self.assertEqual(inner.find('def'), outer)
         self.assertIsNone(inner.find('ghi'))
@@ -86,7 +81,7 @@ class TestBuiltins(TestCase):
 class TestEval(TestCase):
 
     def test_variable_reference(self):
-        self.assertEqual(eval_expr('x', Env(('x',), (123,))), 123)
+        self.assertEqual(eval_expr('x', Env({'x':123})), 123)
 
     def test_constant_literal(self):
         self.assertEqual(eval_expr(123), 123)
@@ -95,12 +90,12 @@ class TestEval(TestCase):
         self.assertEqual(eval_expr(['quote', 456]), 456)
 
     def test_if_pred_conseq_alt(self):
-        env = Env(('t', 'f'), (True, False))
+        env = Env({'t':True, 'f':False})
         self.assertEqual(eval_expr(['if', 't', 123, 456], env), 123)
         self.assertEqual(eval_expr(['if', 'f', 123, 456], env), 456)
 
     def test_set_var_expr(self):
-        env = Env(('var',), (0,))
+        env = Env({'var': 0})
         self.assertIsNone(eval_expr(['set!', 'var', 789], env))
         self.assertEqual(env['var'], 789)
 
@@ -161,7 +156,7 @@ class TestEvalParse(TestCase):
         self.assertEqual(eval_expr(parse('(/ 360 (/ (/ 60 2) 10))')), 120)
 
     def test_parse_and_evaluate_arithmetic_with_vars(self):
-        env = Env({'a':2, 'b':30, 'c':4}, outer=global_env)
+        env = Env({'a':2, 'b':30, 'c':4}, global_env)
         self.assertEqual(eval_expr(parse('(+ a 3 (+ b 40 50) c)'), env), 129)
 
 

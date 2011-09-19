@@ -17,15 +17,9 @@ class Env(dict):
     Stores the name-value pairs of a context.
     Construct as either: Env({'a': 123}) or Env(params=('a',), args=(123,))
     '''
-    def __init__(self, params=(), args=(), outer=None):
-        if isinstance(params, tuple) and len(params)==len(args):
-            params = zip(params, args)
-        elif not isinstance(params, dict) or args != ():
-            raise TypeError(
-                'Bad args to Env(): params=%s, args=%s, outer=%s' %
-                (params, args, outer)
-            )
-        self.update(params)
+    def __init__(self, values=None, outer=None):
+        if values:
+            self.update(values)
         self.outer = outer
 
     def find(self, var):
