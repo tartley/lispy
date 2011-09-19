@@ -194,10 +194,14 @@ class TestEvalString(TestCase):
             eval_string('(')
         self.assertEqual(str(cm.exception), 'Unexpected EOF mid expression')
 
-    def test_parse_string_multiple_expressions(self):
+    def test_eval_string_literals(self):
+        self.assertEqual(eval_string('123'), 123)
+        self.assertEqual(eval_string('1.23'), 1.23)
+
+    def test_eval_string_multiple_expressions(self):
         self.assertEqual(eval_string('100 200'), 200)
 
-    def test_parse_string_arithmetic(self):
+    def test_eval_string_arithmetic(self):
         data = [
             ('(+ 1 2 (+ 30 40 50) 3)', 126),
             ('(* 2 3 (* 5 6 7) 4)', 5040),
@@ -207,9 +211,14 @@ class TestEvalString(TestCase):
         for string, value in data:
             self.assertEqual(eval_string(string), value)
 
-    def test_parse_string_arithmetic_with_vars(self):
+    def test_eval_string_arithmetic_with_vars(self):
         env = Env({'a':2, 'b':30, 'c':4}, global_env)
         self.assertEqual(eval_string('(+ a 3 (+ b 40 50) c)', env), 129)
+
+    def test_eval_string_quote(self):
+        self.assertEqual(eval_string('(quote abc)'), 'abc')
+        self.assertEqual(eval_string('(quote 123)'), 123)
+        
 
 
 if __name__ == '__main__':
