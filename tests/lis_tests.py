@@ -190,9 +190,32 @@ class TestEvalExpr(TestCase):
         self.assertIsNone(eval_expr(['set!', 'var', 789], env))
         self.assertEqual(env['var'], 789)
 
+    def test_eval_expr_set_modified_defining_env(self):
+        outer = Env({'var': 0})
+        inner = Env({}, outer)
+        self.assertIsNone(eval_expr(['set!', 'var', 789], inner))
+        self.assertEqual(inner, {})
+        self.assertEqual(outer, {'var': 789})
+
     def test_eval_expr_set_raises_on_new(self):
         with self.assertRaises(NameError):
             eval_expr(['set!', 'new_variable', 0])
+
+    def test_eval_expr_define(self):
+        env = Env({'var': 0})
+        self.assertIsNone(eval_expr(['define', 'var', 789], env))
+        self.assertEqual(env['var'], 789)
+
+    def test_eval_expr_define_modifies_current_env(self):
+        outer = Env({'var': 0})
+        inner = Env({}, outer)
+        self.assertIsNone(eval_expr(['define', 'var', 789], inner))
+        self.assertEqual(inner, {'var': 789})
+        self.assertEqual(outer, {'var': 0})
+
+        env = Env({'var': 0})
+        self.assertIsNone(eval_expr(['define', 'var', 789], env))
+        self.assertEqual(env['var'], 789)
 
     def test_eval_expr_proc(self):
         env = Env({'x': op.add, 'a': 111, 'b': 222})

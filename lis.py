@@ -108,7 +108,7 @@ def parse(s):
 # eval
 
 def eval_expr(expr, env=global_env):
-    'Evaluate an expression in an environment.'
+    'Evaluate an expression in an environment. Defines special forms.'
 
     if isinstance(expr, Symbol):
         defining_env = env.find(expr)
@@ -117,8 +117,7 @@ def eval_expr(expr, env=global_env):
         else:
             raise NameError(expr)
 
-    elif not isinstance(expr, list):
-        # constant literal
+    elif not isinstance(expr, list): # constant literal
         return expr
 
     elif expr[0] == 'quote':
@@ -133,8 +132,11 @@ def eval_expr(expr, env=global_env):
         (_, var, value) = expr
         env.find(var)[var] = eval_expr(value, env)
 
-    else:
-        # procedure
+    elif expr[0] == 'define':
+        (_, var, value) = expr
+        env[var] = eval_expr(value, env)
+
+    else: # procedure invocation
         values = [eval_expr(subexpr, env) for subexpr in expr]
         proc = values.pop(0)
         return proc(*values)
