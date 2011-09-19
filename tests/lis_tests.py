@@ -5,13 +5,12 @@ import operator as op
 import sys
 from unittest import main, TestCase
 
-
 # Append parent dir to sys.path so that tests can import from it
 sys.path.insert(0, path.abspath(path.join(path.dirname(__file__), '..')))
 
 from lis import (
-    atom, Env, eval_expr, expr_from_tokens, get_builtins, global_env,
-    parse, Symbol, to_string, tokenize,
+    atom, Env, eval_expr, eval_string, expr_from_tokens, get_builtins,
+    global_env, parse, Symbol, to_string, tokenize,
 )
 
 
@@ -159,10 +158,21 @@ class TestParse(TestCase):
             expr_from_tokens([')'])
 
     def test_expr_from_tokens(self):
-        self.assertEqual(expr_from_tokens(['(', '1', '2', '3', ')']), [1, 2, 3])
+        self.assertEqual(
+            expr_from_tokens(['(', '1', '2', '3', ')']),
+            [1, 2, 3]
+        )
 
-    def test_parse(self):
-        self.assertEqual(parse('( 1 2 3 )'), [1, 2, 3])
+    def test_expr_from_tokens_returns_first_expression_only(self):
+        tokens = ['(', '1', '2', ')', '(', '3', ')']
+        self.assertEqual(expr_from_tokens(tokens), [1, 2])
+        self.assertEqual(tokens, ['(', '3', ')'])
+
+    def test_parse_single_expr(self):
+        self.assertEqual(list(parse('(1 2 3)')), [[1, 2, 3]])
+
+    def test_parse_multiple_expr(self):
+        self.assertEqual(list(parse('(1 2)(3)')), [[1, 2], [3]])
 
 
 class TestRepl(TestCase):
@@ -173,22 +183,22 @@ class TestRepl(TestCase):
         self.assertEqual(to_string([1, [2, 3], 4]), '(1 (2 3) 4)')
 
 
-class TestEvalParse(TestCase):
+class TestEvalString(TestCase):
 
-    def test_parse_and_evaluate_errors(self):
+    def test_eval_string_errors(self):
         with self.assertRaises(SyntaxError) as cm:
-            eval_expr(parse(''))
-        self.assertEqual(str(cm.exception), 'Unexpected EOF while reading')
+            eval_string(')')
+        self.assertEqual(str(cm.exception), 'Unexpected ")"')
 
     def test_parse_and_evaluate_arithmetic(self):
-        self.assertEqual(eval_expr(parse('(+ 1 2 (+ 30 40 50) 3)')), 126)
-        self.assertEqual(eval_expr(parse('(* 2 3 (* 5 6 7) 4)')), 5040)
-        self.assertEqual(eval_expr(parse('(- 100 (- (- 50 20) 5))')), 75)
-        self.assertEqual(eval_expr(parse('(/ 360 (/ (/ 60 2) 10))')), 120)
+        self.assertEqual(eval_string('(+ 1 2 (+ 30 40 50) 3)'), 126)
+        self.assertEqual(eval_string('(* 2 3 (* 5 6 7) 4)'), 5040)
+        self.assertEqual(eval_string('(- 100 (- (- 50 20) 5))'), 75)
+        self.assertEqual(eval_string('(/ 360 (/ (/ 60 2) 10))'), 120)
 
     def test_parse_and_evaluate_arithmetic_with_vars(self):
         env = Env({'a':2, 'b':30, 'c':4}, global_env)
-        self.assertEqual(eval_expr(parse('(+ a 3 (+ b 40 50) c)'), env), 129)
+        self.assertEqual(eval_string('(+ a 3 (+ b 40 50) c)', env), 129)
 
 
 if __name__ == '__main__':

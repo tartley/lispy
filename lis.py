@@ -79,7 +79,7 @@ def atom(token):
 
 
 def expr_from_tokens(tokens):
-    'Convert list of tokens into an expression'
+    "Pop a complete expression from the start of 'tokens', and return it."
     if len(tokens) == 0:
         raise SyntaxError('Unexpected EOF while reading')
     token = tokens.pop(0)
@@ -87,17 +87,19 @@ def expr_from_tokens(tokens):
         expr = []
         while tokens[0] != ')':
             expr.append( expr_from_tokens(tokens) )
-        tokens.pop(0) # pop final ')'
+        tokens.pop(0) # discard the closing ')'
         return expr
     elif token == ')':
-        raise SyntaxError('unexpected ")"')
+        raise SyntaxError('Unexpected ")"')
     else:
         return atom(token)
 
 
 def parse(s):
-    'Read a Scheme expression from a string'
-    return expr_from_tokens(tokenize(s))
+    'Yield a sequence of Scheme expressions from a string'
+    tokens = tokenize(s)
+    while tokens:
+        yield expr_from_tokens(tokens)
 
 
 # eval
@@ -127,6 +129,13 @@ def eval_expr(expr, env=global_env):
         return proc(*values)
 
 
+def eval_string(string, env=global_env):
+    value = None
+    for expr in parse(string):
+        value = eval_expr(expr, env)
+    return value
+
+
 # repl
 
 def to_string(expr):
@@ -138,9 +147,9 @@ def to_string(expr):
 
 def repl(prompt='lis> '):
     while True:
-        val = eval_expr(parse(input(prompt)))
-        if val is not None:
-            print(to_string(val))
+        value = eval_string(input(prompt))
+        if value is not None:
+            print(to_string(value))
 
 
 # command-line processing
@@ -171,8 +180,7 @@ def main(argv):
         sys.exit(0)
 
     if args.sourcefile:
-        source = args.sourcefile.read()
-        eval_expr(parse(source))
+        eval_string(args.sourcefile.read())
 
 
 if __name__ == '__main__':
