@@ -109,24 +109,32 @@ def parse(s):
 
 def eval_expr(expr, env=global_env):
     'Evaluate an expression in an environment.'
+
     if isinstance(expr, Symbol):
         defining_env = env.find(expr)
         if defining_env:
             return defining_env[expr]
         else:
             raise NameError(expr)
+
     elif not isinstance(expr, list):
+        # constant literal
         return expr
+
     elif expr[0] == 'quote':
         _, value = expr
         return value
+
     elif expr[0] == 'if':
         _, pred, conseq, alt = expr
         return eval_expr((conseq if eval_expr(pred, env) else alt), env)
+
     elif expr[0] == 'set!':
         (_, var, value) = expr
         env.find(var)[var] = eval_expr(value, env)
+
     else:
+        # procedure
         values = [eval_expr(subexpr, env) for subexpr in expr]
         proc = values.pop(0)
         return proc(*values)

@@ -53,7 +53,6 @@ class TestBuiltins(TestCase):
         self.assertEqual(add(3, 2), 5)
         self.assertEqual(add(3, 2, 1), 6)
 
-
     def test_sub(self):
         sub = get_builtins()['-']
         with self.assertRaises(TypeError):
@@ -63,7 +62,6 @@ class TestBuiltins(TestCase):
         with self.assertRaises(TypeError):
             sub(1, 2, 3)
 
-
     def test_mul(self):
         mul = get_builtins()['*']
         with self.assertRaises(TypeError):
@@ -72,7 +70,6 @@ class TestBuiltins(TestCase):
             mul(123)
         self.assertEqual(mul(3, 2), 6)
         self.assertEqual(mul(4, 3, 2), 24)
-
 
     def test_div(self):
         div = get_builtins()['/']
@@ -84,7 +81,6 @@ class TestBuiltins(TestCase):
         self.assertAlmostEqual(div(10, 3), 3.3333333)
         with self.assertRaises(TypeError):
             div(1, 2, 3)
-
 
     def test_display(self):
 
@@ -107,36 +103,6 @@ class TestBuiltins(TestCase):
                 self.assertEqual(calls[-1], args)
         finally:
             lis.print = print
-
-
-class TestEval(TestCase):
-
-    def test_variable_reference(self):
-        self.assertEqual(eval_expr('x', Env({'x':123})), 123)
-
-    def test_constant_literal(self):
-        self.assertEqual(eval_expr(123), 123)
-
-    def test_quote_expr(self):
-        self.assertEqual(eval_expr(['quote', 456]), 456)
-
-    def test_if_pred_conseq_alt(self):
-        env = Env({'t':True, 'f':False})
-        self.assertEqual(eval_expr(['if', 't', 123, 456], env), 123)
-        self.assertEqual(eval_expr(['if', 'f', 123, 456], env), 456)
-
-    def test_set_var_expr(self):
-        env = Env({'var': 0})
-        self.assertIsNone(eval_expr(['set!', 'var', 789], env))
-        self.assertEqual(env['var'], 789)
-
-    def test_procedure_invocation(self):
-        env = Env({
-            'x': op.add,
-            'a': 111,
-            'b': 222,
-        })
-        self.assertEqual(eval_expr(['x', 'a', 'b'], env), 333)
 
 
 class TestParse(TestCase):
@@ -182,6 +148,36 @@ class TestRepl(TestCase):
         self.assertEqual(to_string(123), '123')
         self.assertEqual(to_string([1, 2, 3]), '(1 2 3)')
         self.assertEqual(to_string([1, [2, 3], 4]), '(1 (2 3) 4)')
+
+
+class TestEval(TestCase):
+
+    def test_variable_reference(self):
+        self.assertEqual(eval_expr('x', Env({'x':123})), 123)
+
+    def test_constant_literal(self):
+        self.assertEqual(eval_expr(123), 123)
+
+    def test_quote_expr(self):
+        self.assertEqual(eval_expr(['quote', 456]), 456)
+
+    def test_if_pred_conseq_alt(self):
+        env = Env({'t':True, 'f':False})
+        self.assertEqual(eval_expr(['if', 't', 123, 456], env), 123)
+        self.assertEqual(eval_expr(['if', 'f', 123, 456], env), 456)
+
+    def test_set_var_expr(self):
+        env = Env({'var': 0})
+        self.assertIsNone(eval_expr(['set!', 'var', 789], env))
+        self.assertEqual(env['var'], 789)
+
+    def test_procedure_invocation(self):
+        env = Env({
+            'x': op.add,
+            'a': 111,
+            'b': 222,
+        })
+        self.assertEqual(eval_expr(['x', 'a', 'b'], env), 333)
 
 
 class TestEvalString(TestCase):
@@ -236,6 +232,14 @@ class TestEvalString(TestCase):
 
         with self.assertRaises(NameError):
             eval_string('(set! y 0)')
+
+    def test_eval_string_proc(self):
+        env = Env({
+            'x': op.add,
+            'a': 111,
+            'b': 222,
+        })
+        self.assertEqual(eval_string('(x a b)', env), 333)
 
 
 if __name__ == '__main__':
