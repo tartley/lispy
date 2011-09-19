@@ -133,8 +133,8 @@ def eval_expr(expr, env=global_env):
         env.find(var)[var] = eval_expr(value, env)
 
     elif expr[0] == 'define':
-        (_, var, value) = expr
-        env[var] = eval_expr(value, env)
+        (_, name, value) = expr
+        env[name] = eval_expr(value, env)
 
     else: # procedure invocation
         values = [eval_expr(subexpr, env) for subexpr in expr]

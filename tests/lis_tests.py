@@ -213,10 +213,6 @@ class TestEvalExpr(TestCase):
         self.assertEqual(inner, {'var': 789})
         self.assertEqual(outer, {'var': 0})
 
-        env = Env({'var': 0})
-        self.assertIsNone(eval_expr(['define', 'var', 789], env))
-        self.assertEqual(env['var'], 789)
-
     def test_eval_expr_proc(self):
         env = Env({'x': op.add, 'a': 111, 'b': 222})
         self.assertEqual(eval_expr(['x', 'a', 'b'], env), 333)
