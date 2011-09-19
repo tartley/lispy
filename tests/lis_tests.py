@@ -119,10 +119,30 @@ class TestParse(TestCase):
         self.assertEqual(atom('abc'), Symbol('abc'))
 
     def test_expr_from_tokens_raises(self):
-        with self.assertRaises(SyntaxError):
+        with self.assertRaises(SyntaxError) as cm:
             expr_from_tokens([])
+        self.assertEqual(str(cm.exception), 'Unexpected EOF at start of expression')
+
+        with self.assertRaises(SyntaxError) as cm:
+            expr_from_tokens(['('])
+        self.assertEqual(str(cm.exception), 'Unexpected EOF mid expression')
+
+        with self.assertRaises(SyntaxError) as cm:
+            expr_from_tokens([')'])
+        self.assertEqual(str(cm.exception), 'Unexpected ")"')
+
+
+    def test_expr_from_tokens(self):
+        self.assertEqual(
+            expr_from_tokens(['(', '1', '2', '3', ')']),
+            [1, 2, 3]
+        )
+
+        with self.assertRaises(SyntaxError) as cm:
+            eval_string('(')
         with self.assertRaises(SyntaxError):
             expr_from_tokens([')'])
+        self.assertEqual(str(cm.exception), 'Unexpected ")"')
 
     def test_expr_from_tokens(self):
         self.assertEqual(
@@ -142,64 +162,49 @@ class TestParse(TestCase):
         self.assertEqual(list(parse('(1 2)(3)')), [[1, 2], [3]])
 
 
-class TestRepl(TestCase):
+class TestEvalExpr(TestCase):
 
-    def test_to_string(self):
-        self.assertEqual(to_string(123), '123')
-        self.assertEqual(to_string([1, 2, 3]), '(1 2 3)')
-        self.assertEqual(to_string([1, [2, 3], 4]), '(1 (2 3) 4)')
+    def test_eval_expr_constant_literals(self):
+        self.assertEqual(eval_expr(123), 123)
+        self.assertEqual(eval_expr(1.23), 1.23)
 
-
-class TestEval(TestCase):
-
-    def test_variable_reference(self):
+    def test_eval_expr_variable_reference(self):
         self.assertEqual(eval_expr('x', Env({'x':123})), 123)
 
-    def test_constant_literal(self):
-        self.assertEqual(eval_expr(123), 123)
+    def test_eval_expr_quote(self):
+        self.assertEqual(eval_expr(['quote', 123]), 123)
+        self.assertEqual(eval_expr(['quote', 'abc']), 'abc')
+        self.assertEqual(eval_expr(['quote', ['+', 2, 3]]), ['+', 2, 3])
 
-    def test_quote_expr(self):
-        self.assertEqual(eval_expr(['quote', 456]), 456)
+    def test_eval_expr_if(self):
+        self.assertEqual(eval_expr(['if', 1, 123, 456]), 123)
+        self.assertEqual(eval_expr(['if', 0, 123, 456]), 456)
 
-    def test_if_pred_conseq_alt(self):
-        env = Env({'t':True, 'f':False})
-        self.assertEqual(eval_expr(['if', 't', 123, 456], env), 123)
-        self.assertEqual(eval_expr(['if', 'f', 123, 456], env), 456)
+    def test_eval_expr_if_evaluates_pred_conseq_and_alt(self):
+        env = Env({'t':1, 'f':0, 'conseq':123, 'alt':456})
+        self.assertEqual(eval_expr(['if', 't', 'conseq', 'undef'], env), 123)
+        self.assertEqual(eval_expr(['if', 'f', 'undef', 'alt'], env), 456)
 
-    def test_set_var_expr(self):
+    def test_eval_expr_set(self):
         env = Env({'var': 0})
         self.assertIsNone(eval_expr(['set!', 'var', 789], env))
         self.assertEqual(env['var'], 789)
 
-    def test_procedure_invocation(self):
-        env = Env({
-            'x': op.add,
-            'a': 111,
-            'b': 222,
-        })
+    def test_eval_expr_set_raises_on_new(self):
+        with self.assertRaises(NameError):
+            eval_expr(['set!', 'new_variable', 0])
+
+    def test_eval_expr_proc(self):
+        env = Env({'x': op.add, 'a': 111, 'b': 222})
         self.assertEqual(eval_expr(['x', 'a', 'b'], env), 333)
 
 
 class TestEvalString(TestCase):
 
-    def test_eval_string_errors(self):
-        with self.assertRaises(SyntaxError) as cm:
-            eval_string(')')
-        self.assertEqual(str(cm.exception), 'Unexpected ")"')
-
-        with self.assertRaises(SyntaxError) as cm:
-            eval_string('(')
-        self.assertEqual(str(cm.exception), 'Unexpected EOF mid expression')
-
-    def test_eval_string_literals(self):
-        self.assertEqual(eval_string('123'), 123)
-        self.assertEqual(eval_string('1.23'), 1.23)
-
-    def test_eval_string_multiple_expressions(self):
-        self.assertEqual(eval_string('100 200'), 200)
-
-    def test_eval_string_arithmetic(self):
+    def test_eval_string(self):
         data = [
+            ('100', 100),
+            ('100 200', 200),
             ('(+ 1 2 (+ 30 40 50) 3)', 126),
             ('(* 2 3 (* 5 6 7) 4)', 5040),
             ('(- 100 (- (- 50 20) 5))', 75),
@@ -208,38 +213,17 @@ class TestEvalString(TestCase):
         for string, value in data:
             self.assertEqual(eval_string(string), value)
 
-    def test_eval_string_arithmetic_with_vars(self):
+    def test_eval_string_with_vars(self):
         env = Env({'a':2, 'b':30, 'c':4}, global_env)
         self.assertEqual(eval_string('(+ a 3 (+ b 40 50) c)', env), 129)
 
-    def test_eval_string_quote(self):
-        self.assertEqual(eval_string('(quote abc)'), 'abc')
-        self.assertEqual(eval_string('(quote 123)'), 123)
-        self.assertEqual(eval_string('(quote (1 2 3))'), [1, 2, 3])
-        self.assertEqual(eval_string('(quote (+ 2 3))'), ['+', 2, 3])
-        
-    def test_eval_string_if(self):
-        self.assertEqual(eval_string('(if 1 123 456)'), 123)
-        self.assertEqual(eval_string('(if 0 123 456)'), 456)
-        env = Env({'true':1, 'false':0, 'conseq':123, 'alt':456})
-        self.assertEqual(eval_string('(if true conseq undefined)', env), 123)
-        self.assertEqual(eval_string('(if false undefined alt)', env), 456)
 
-    def test_eval_string_set(self):
-        env = Env({'x':123})
-        self.assertIsNone(eval_string('(set! x 456)', env))
-        self.assertEqual(env['x'], 456)
+class TestRepl(TestCase):
 
-        with self.assertRaises(NameError):
-            eval_string('(set! y 0)')
-
-    def test_eval_string_proc(self):
-        env = Env({
-            'x': op.add,
-            'a': 111,
-            'b': 222,
-        })
-        self.assertEqual(eval_string('(x a b)', env), 333)
+    def test_to_string(self):
+        self.assertEqual(to_string(123), '123')
+        self.assertEqual(to_string([1, 2, 3]), '(1 2 3)')
+        self.assertEqual(to_string([1, [2, 3], 4]), '(1 (2 3) 4)')
 
 
 if __name__ == '__main__':
