@@ -11,6 +11,7 @@ Symbol = str
 
 # Env
 
+
 class Env(dict):
     '''
     Stores the name-value pairs of a context.
@@ -19,6 +20,11 @@ class Env(dict):
     def __init__(self, params=(), args=(), outer=None):
         if isinstance(params, tuple) and len(params)==len(args):
             params = zip(params, args)
+        elif not isinstance(params, dict) or args != ():
+            raise TypeError(
+                'Bad args to Env(): params=%s, args=%s, outer=%s' %
+                (params, args, outer)
+            )
         self.update(params)
         self.outer = outer
 
@@ -57,6 +63,7 @@ def get_builtins():
 global_env = Env(get_builtins())
 
 
+
 # parse
 
 def tokenize(s):
@@ -78,7 +85,7 @@ def atom(token):
 def expr_from_tokens(tokens):
     'Convert list of tokens into an expression'
     if len(tokens) == 0:
-        raise SyntaxError('unexpected EOF while reading')
+        raise SyntaxError('Unexpected EOF while reading')
     token = tokens.pop(0)
     if token == '(':
         expr = []

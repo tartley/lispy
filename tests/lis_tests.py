@@ -5,8 +5,8 @@ from unittest import main, TestCase
 
 import fixpath
 from lis import (
-    atom, Env, eval_expr, expr_from_tokens, get_builtins, parse, Symbol,
-    to_string, tokenize,
+    atom, Env, eval_expr, expr_from_tokens, get_builtins, global_env,
+    parse, Symbol, to_string, tokenize,
 )
 
 
@@ -149,11 +149,20 @@ class TestRepl(TestCase):
 
 class TestEvalParse(TestCase):
 
-    def test_parse_and_evaluate(self):
+    def test_parse_and_evaluate_errors(self):
+        with self.assertRaises(SyntaxError) as cm:
+            eval_expr(parse(''))
+        self.assertEqual(str(cm.exception), 'Unexpected EOF while reading')
+
+    def test_parse_and_evaluate_arithmetic(self):
         self.assertEqual(eval_expr(parse('(+ 1 2 (+ 30 40 50) 3)')), 126)
         self.assertEqual(eval_expr(parse('(* 2 3 (* 5 6 7) 4)')), 5040)
         self.assertEqual(eval_expr(parse('(- 100 (- (- 50 20) 5))')), 75)
         self.assertEqual(eval_expr(parse('(/ 360 (/ (/ 60 2) 10))')), 120)
+
+    def test_parse_and_evaluate_arithmetic_with_vars(self):
+        env = Env({'a':2, 'b':30, 'c':4}, outer=global_env)
+        self.assertEqual(eval_expr(parse('(+ a 3 (+ b 40 50) c)'), env), 129)
 
 
 if __name__ == '__main__':
