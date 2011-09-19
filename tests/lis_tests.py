@@ -217,6 +217,15 @@ class TestEvalExpr(TestCase):
         procedure = eval_expr(['lambda', 'x', ['+', 'x', 4]])
         self.assertEqual(procedure(10), 14)
 
+        procedure = eval_expr(['lambda', ['x'], ['+', 'x', 4]])
+        self.assertEqual(procedure(10), 14)
+
+        procedure = eval_expr(['lambda', ['x', 'y'], ['+', 'x', 'y', 4]])
+        self.assertEqual(procedure(10, 20), 34)
+
+    def test_eval_expr_begin(self):
+        pass
+
     def test_eval_expr_proc(self):
         env = Env({'x': op.add, 'a': 111, 'b': 222})
         self.assertEqual(eval_expr(['x', 'a', 'b'], env), 333)
