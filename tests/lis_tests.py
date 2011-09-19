@@ -218,7 +218,16 @@ class TestEvalString(TestCase):
     def test_eval_string_quote(self):
         self.assertEqual(eval_string('(quote abc)'), 'abc')
         self.assertEqual(eval_string('(quote 123)'), 123)
+        self.assertEqual(eval_string('(quote (1 2 3))'), [1, 2, 3])
+        self.assertEqual(eval_string('(quote (+ 2 3))'), ['+', 2, 3])
         
+    def test_eval_string_if(self):
+        self.assertEqual(eval_string('(if 1 123 456)'), 123)
+        self.assertEqual(eval_string('(if 0 123 456)'), 456)
+        env = Env({'true':1, 'false':0, 'conseq':123, 'alt':456})
+        self.assertEqual(eval_string('(if true conseq undefined)', env), 123)
+        self.assertEqual(eval_string('(if false undefined alt)', env), 456)
+
 
 
 if __name__ == '__main__':
