@@ -147,7 +147,11 @@ def to_string(expr):
 
 def repl(prompt='lis> '):
     while True:
-        value = eval_string(input(prompt))
+        try:
+            value = eval_string(input(prompt))
+        except EOFError:
+            print()
+            break
         if value is not None:
             print(to_string(value))
 
@@ -173,13 +177,17 @@ def get_parser():
 VERSION = '0.1'
 
 def main(argv):
+
     parser = get_parser()
     args = parser.parse_args()
+
     if args.version:
         print('v%s' % (VERSION,))
         sys.exit(0)
 
-    if args.sourcefile:
+    if sys.stdin.isatty() and args.sourcefile == sys.stdin:
+        repl()
+    else:
         eval_string(args.sourcefile.read())
 
 
