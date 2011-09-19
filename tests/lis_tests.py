@@ -190,13 +190,20 @@ class TestEvalString(TestCase):
             eval_string(')')
         self.assertEqual(str(cm.exception), 'Unexpected ")"')
 
-    def test_parse_and_evaluate_arithmetic(self):
-        self.assertEqual(eval_string('(+ 1 2 (+ 30 40 50) 3)'), 126)
-        self.assertEqual(eval_string('(* 2 3 (* 5 6 7) 4)'), 5040)
-        self.assertEqual(eval_string('(- 100 (- (- 50 20) 5))'), 75)
-        self.assertEqual(eval_string('(/ 360 (/ (/ 60 2) 10))'), 120)
+    def test_parse_string_multiple_expressions(self):
+        self.assertEqual(eval_string('100 200'), 200)
 
-    def test_parse_and_evaluate_arithmetic_with_vars(self):
+    def test_parse_string_arithmetic(self):
+        data = [
+            ('(+ 1 2 (+ 30 40 50) 3)', 126),
+            ('(* 2 3 (* 5 6 7) 4)', 5040),
+            ('(- 100 (- (- 50 20) 5))', 75),
+            ('(/ 360 (/ (/ 60 2) 10))', 120),
+        ]
+        for string, value in data:
+            self.assertEqual(eval_string(string), value)
+
+    def test_parse_string_arithmetic_with_vars(self):
         env = Env({'a':2, 'b':30, 'c':4}, global_env)
         self.assertEqual(eval_string('(+ a 3 (+ b 40 50) c)', env), 129)
 

@@ -150,10 +150,10 @@ def repl(prompt='lis> '):
         try:
             value = eval_string(input(prompt))
         except EOFError:
-            print()
             break
         if value is not None:
             print(to_string(value))
+    print()
 
 
 # command-line processing
