@@ -141,6 +141,11 @@ def eval_expr(expr, env=global_env):
         (_, name, value) = expr
         env[name] = eval_expr(value, env)
 
+    elif expr[0] == 'lambda':
+        # (lambda (<args>) <body>)
+        (_, args, body) = expr
+        return lambda *params: eval_expr(body, Env(zip(args, params), env))
+
     else:
         # procedure invocation, (<proc> arg1 arg2...)
         values = [eval_expr(subexpr, env) for subexpr in expr]
