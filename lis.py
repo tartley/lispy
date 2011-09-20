@@ -54,6 +54,7 @@ def get_builtins():
         '-': sub,
         '*': mul,
         '/': op.truediv,
+        'not': op.not_,
         'display': print,
     }
 

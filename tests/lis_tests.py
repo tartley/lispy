@@ -82,6 +82,14 @@ class TestBuiltins(TestCase):
         with self.assertRaises(TypeError):
             div(1, 2, 3)
 
+    def test_not(self):
+        not_ = get_builtins()['not']
+        with self.assertRaises(TypeError):
+            not_()
+        self.assertEqual(not_(True), False)
+        self.assertEqual(not_(False), True)
+
+
     def test_display(self):
 
         calls = []
