@@ -2,6 +2,11 @@
 Following along with Peter Norvig's List interpreter from
 http://norvig.com/lispy.html
 
+I'm up to the end of blog post 1, with some minor improvements, such as:
+Some slightly more helpful error messages on encountering invalid source code
+(although I don't plan to venture far down that rabbit hole). Also I improved
+built-in operators + and * to accept multiple arguments.
+
 
 Dependencies
 ------------
@@ -19,20 +24,20 @@ Usage
 
 <Options> may include any of:
 
-    --version
+    --version | -v
         Display version number and quit.
-    --help
+    --help | -h
         Display usage information and quit.
 
 
 Known Issues
 ------------
 
-Nothing is implemented yet.
+All very seat-of-the-pants.
 
 
 Thanks
 ------
 
-Peter Norvig for creating Lispy and then blogging about it.
+Peter Norvig for creating Lispy and blogging about it.
 
