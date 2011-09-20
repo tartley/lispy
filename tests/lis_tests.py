@@ -267,6 +267,14 @@ class TestEvalExpr(TestCase):
             'Expression "a" (int) not callable in "(a b)"')
 
 
+class TestToString(TestCase):
+
+    def test_to_string(self):
+        self.assertEqual(to_string(123), '123')
+        self.assertEqual(to_string([1, 2, 3]), '(1 2 3)')
+        self.assertEqual(to_string([1, [2, 3], 4]), '(1 (2 3) 4)')
+
+
 class TestEvalString(TestCase):
 
     def test_eval_string(self):
@@ -289,13 +297,46 @@ class TestEvalString(TestCase):
         proc = eval_string('(lambda (x) (+ x 4))')
         self.assertEqual(proc(10), 14)
 
+    def test_eval_string_define_procedure(self):
+        area = eval_string('''
+            (define pi 3.14159)
+            (define area (lambda (r) (* pi (* r r))))
+            (area 3)
+        ''')
+        self.assertEqual(area, 28.27431)
 
-class TestToString(TestCase):
+    def test_eval_string_recursion(self):
+        area = eval_string('''
+            (define fact (lambda n (if (<= n 1) 1 (* n (fact (- n 1))))))
+            (fact 10)
+        ''')
+        self.assertEqual(area, 3628800)
 
-    def test_to_string(self):
-        self.assertEqual(to_string(123), '123')
-        self.assertEqual(to_string([1, 2, 3]), '(1 2 3)')
-        self.assertEqual(to_string([1, [2, 3], 4]), '(1 (2 3) 4)')
+        expected = 93326215443944152681699238856266700490715968264381621468592963895217599993229915608941463976156518286253697920827223758251185210916864000000000000000000000000
+        self.assertEqual(eval_string('(fact 100)'), expected)
+
+    def test_eval_string_car_cdr(self):
+        count = eval_string('''
+            (define first car)
+            (define rest cdr)
+            (define count (
+                lambda (item L)
+                    (if L
+                        (+ (equal? item (first L)) (count item (rest L)))
+                        0
+                    )
+            ) )
+            (count 0 (list 0 1 2 3 0 0))
+        ''')
+        self.assertEqual(count, 3)
+
+        count2 = eval_string('''
+            (count
+                (quote the)
+                (quote (the more the merrier the bigger the better))
+            )
+        ''')
+        self.assertEqual(count2, 4)
 
 
 if __name__ == '__main__':
