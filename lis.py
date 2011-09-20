@@ -142,9 +142,16 @@ def eval_expr(expr, env=global_env):
         env[name] = eval_expr(value, env)
 
     elif expr[0] == 'lambda':
-        # (lambda (<args>) <body>)
+        # (lambda (<args>) <body>) or (lambda <arg> <body>)
         (_, args, body) = expr
         return lambda *params: eval_expr(body, Env(zip(args, params), env))
+
+    elif expr[0] == 'begin':
+        if len(expr) <= 1:
+            raise SyntaxError('"begin" with no contents')
+        for subexpr in expr[1:]:
+            val = eval_expr(subexpr, env)
+        return val
 
     else:
         # procedure invocation, (<proc> arg1 arg2...)

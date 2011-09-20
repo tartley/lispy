@@ -224,7 +224,10 @@ class TestEvalExpr(TestCase):
         self.assertEqual(procedure(10, 20), 34)
 
     def test_eval_expr_begin(self):
-        pass
+        with self.assertRaises(SyntaxError):
+            eval_expr(['begin'])
+
+        self.assertEqual(eval_expr(['begin', 1, 2, 3]), 3)
 
     def test_eval_expr_proc(self):
         env = Env({'x': op.add, 'a': 111, 'b': 222})
