@@ -232,6 +232,12 @@ class TestEvalExpr(TestCase):
     def test_eval_expr_proc(self):
         env = Env({'x': op.add, 'a': 111, 'b': 222})
         self.assertEqual(eval_expr(['x', 'a', 'b'], env), 333)
+        
+        with self.assertRaises(TypeError) as cm:
+            eval_expr(['a', 'b'], env)
+        self.assertEqual(
+            str(cm.exception),
+            'Expression "a" (int) not callable in "(a b)"')
 
 
 class TestEvalString(TestCase):

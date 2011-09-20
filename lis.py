@@ -142,11 +142,12 @@ def eval_expr(expr, env=global_env):
         env[name] = eval_expr(value, env)
 
     elif expr[0] == 'lambda':
-        # (lambda (<args>) <body>) or (lambda <arg> <body>)
+        # (lambda (<arg> [<arg>...]) <body>) or (lambda <arg> <body>)
         (_, args, body) = expr
         return lambda *params: eval_expr(body, Env(zip(args, params), env))
 
     elif expr[0] == 'begin':
+        # (begin <expr> [<expr>...])
         if len(expr) <= 1:
             raise SyntaxError('"begin" with no contents')
         for subexpr in expr[1:]:
@@ -157,7 +158,13 @@ def eval_expr(expr, env=global_env):
         # procedure invocation, (<proc> arg1 arg2...)
         values = [eval_expr(subexpr, env) for subexpr in expr]
         proc = values.pop(0)
-        return proc(*values)
+        if callable(proc):
+            return proc(*values)
+        else:
+            raise TypeError(
+                'Expression "%s" (%s) not callable in "%s"'
+                % (expr[0], type(proc).__name__, to_string(expr))
+            )
 
 
 def eval_string(string, env=global_env):
