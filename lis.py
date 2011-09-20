@@ -50,11 +50,16 @@ def mul(*args):
 
 def get_builtins():
     return {
+        # logical
         'not': op.not_,
+
+        # arithmetic
         '+': lambda *args: reduce(op.add, args),
         '-': sub,
         '*': mul,
         '/': op.truediv,
+
+        # comparison
         '=': op.eq,
         'equal?': op.eq,
         'eq?': op.is_,
@@ -62,6 +67,23 @@ def get_builtins():
         '<': op.lt,
         '>=': op.ge,
         '<=': op.le, 
+
+        # pairs
+        'cons': lambda x,y: [x]+y,
+        'car': lambda x: x[0],
+        'cdr': lambda x: x[1:],
+
+        # lists
+        'length': len,
+        'append': op.add,
+        'list': lambda *x: list(x),
+
+        # is-a
+        'list?': lambda x: isinstance(x,list), 
+        'null?': lambda x: x==[],
+        'symbol?':lambda x: isinstance(x, Symbol),
+        
+        # IO
         'display': print,
     }
 

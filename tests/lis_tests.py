@@ -71,6 +71,47 @@ class TestBuiltins(TestCase):
         self.assertEqual(mul(3, 2), 6)
         self.assertEqual(mul(4, 3, 2), 24)
 
+    def test_cons_should_prepend_to_existing_list(self):
+        cons = get_builtins()['cons']
+        self.assertEqual(cons(1, [2, 3]), [1, 2, 3])
+
+    def test_cons_is_unable_to_make_a_pair_like_it_ought_to(self):
+        cons = get_builtins()['cons']
+        with self.assertRaises(TypeError) as cm:
+            cons(1, 2)
+
+    def test_car(self):
+        car = get_builtins()['car']
+        self.assertEqual(car([1, 2, 3]), 1)
+
+    def test_cdr(self):
+        cdr = get_builtins()['cdr']
+        self.assertEqual(cdr([1, 2, 3]), [2, 3])
+
+    def test_list(self):
+        list_ = get_builtins()['list']
+        self.assertEqual(list_(1, 2, 3), [1, 2, 3])
+
+    def test_islist(self):
+        islist = get_builtins()['list?']
+        self.assertFalse(islist(1))
+        self.assertFalse(islist('a'))
+        self.assertTrue(islist([1]))
+
+    def test_isnull(self):
+        isnull = get_builtins()['null?']
+        self.assertFalse(isnull(1))
+        self.assertFalse(isnull('a'))
+        self.assertFalse(isnull([1]))
+        self.assertTrue(isnull([]))
+
+    def test_issymbol(self):
+        issymbol = get_builtins()['symbol?']
+        self.assertFalse(issymbol(1))
+        self.assertFalse(issymbol([1]))
+        self.assertFalse(issymbol([]))
+        self.assertTrue(issymbol('a'))
+
     def test_operators(self):
         data = [
             ('not', op.not_),
@@ -82,6 +123,8 @@ class TestBuiltins(TestCase):
             ('<', op.lt),
             ('>=', op.ge),
             ('<=', op.le), 
+            ('length', len),
+            ('append', op.add),
             ('display', print),
         ]
         for name, expected in data:
