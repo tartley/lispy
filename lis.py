@@ -57,6 +57,11 @@ def get_builtins():
         '/': op.truediv,
         '=': op.eq,
         'equal?': op.eq,
+        'eq?': op.is_,
+        '>': op.gt,
+        '<': op.lt,
+        '>=': op.ge,
+        '<=': op.le, 
         'display': print,
     }
 

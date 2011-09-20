@@ -77,11 +77,16 @@ class TestBuiltins(TestCase):
             ('/', op.truediv),
             ('=', op.eq),
             ('equal?', op.eq),
+            ('eq?', op.is_),
+            ('>', op.gt),
+            ('<', op.lt),
+            ('>=', op.ge),
+            ('<=', op.le), 
             ('display', print),
         ]
         for name, expected in data:
             actual = get_builtins()[name]
-            self.assertIs(actual, expected)
+            self.assertIs(actual, expected, 'bad "%s"' % (name,))
 
 
 class TestParse(TestCase):
