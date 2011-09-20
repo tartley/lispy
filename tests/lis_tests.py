@@ -71,46 +71,17 @@ class TestBuiltins(TestCase):
         self.assertEqual(mul(3, 2), 6)
         self.assertEqual(mul(4, 3, 2), 24)
 
-    def test_div(self):
-        div = get_builtins()['/']
-        with self.assertRaises(TypeError):
-            div()
-        with self.assertRaises(TypeError):
-            div(123)
-        self.assertEqual(div(10, 2), 5)
-        self.assertAlmostEqual(div(10, 3), 3.3333333)
-        with self.assertRaises(TypeError):
-            div(1, 2, 3)
-
-    def test_not(self):
-        not_ = get_builtins()['not']
-        with self.assertRaises(TypeError):
-            not_()
-        self.assertEqual(not_(True), False)
-        self.assertEqual(not_(False), True)
-
-
-    def test_display(self):
-
-        calls = []
-        def mock_print(*args):
-            calls.append(args)
-
-        import lis
-        lis.print = mock_print
-        try:
-            display = get_builtins()['display']
-            argslist = [
-                (),
-                (1,),
-                ('a',),
-                (1, 'a'),
-            ]
-            for args in argslist:
-                self.assertIsNone(display(*args))
-                self.assertEqual(calls[-1], args)
-        finally:
-            lis.print = print
+    def test_operators(self):
+        data = [
+            ('not', op.not_),
+            ('/', op.truediv),
+            ('=', op.eq),
+            ('equal?', op.eq),
+            ('display', print),
+        ]
+        for name, expected in data:
+            actual = get_builtins()[name]
+            self.assertIs(actual, expected)
 
 
 class TestParse(TestCase):

@@ -50,11 +50,13 @@ def mul(*args):
 
 def get_builtins():
     return {
+        'not': op.not_,
         '+': lambda *args: reduce(op.add, args),
         '-': sub,
         '*': mul,
         '/': op.truediv,
-        'not': op.not_,
+        '=': op.eq,
+        'equal?': op.eq,
         'display': print,
     }
 
